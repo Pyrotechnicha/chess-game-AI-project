@@ -249,31 +249,128 @@ class AI:
             arr.append([y,x,move[0],move[1],mk])
         return arr
 
+    def calculateb(self, gametiles):
+        value = 0
+        # Adding positional values to pieces to encourage control of the center and development
+        pawn_positional_values = [
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [5, 10, 10, -20, -20, 10, 10, 5],
+            [5, -5, -10, 0, 0, -10, -5, 5],
+            [0, 0, 0, 20, 20, 0, 0, 0],
+            [5, 5, 10, 25, 25, 10, 5, 5],
+            [10, 10, 20, 30, 30, 20, 10, 10],
+            [50, 50, 50, 50, 50, 50, 50, 50],
+            [0, 0, 0, 0, 0, 0, 0, 0]
+        ]
 
-    def calculateb(self,gametiles):
-    piece_values = {
-            'P': -100, 'N': -320, 'B': -330, 'R': -500,
-            'Q': -900, 'K': -20000,
-            'p': 100, 'n': 320, 'b': 330, 'r': 500,
-            'q': 900, 'k': 20000
-            }
-    value = 0
-    for y in range(8):
+        knight_positional_values = [
+            [-50, -40, -30, -30, -30, -30, -40, -50],
+            [-40, -20, 0, 0, 0, 0, -20, -40],
+            [-30, 0, 10, 15, 15, 10, 0, -30],
+            [-30, 5, 15, 20, 20, 15, 5, -30],
+            [-30, 0, 15, 20, 20, 15, 0, -30],
+            [-30, 5, 10, 15, 15, 10, 5, -30],
+            [-40, -20, 0, 5, 5, 0, -20, -40],
+            [-50, -40, -30, -30, -30, -30, -40, -50]
+        ]
+
+        bishop_positional_values = [
+            [-20, -10, -10, -10, -10, -10, -10, -20],
+            [-10, 5, 0, 0, 0, 0, 5, -10],
+            [-10, 10, 10, 10, 10, 10, 10, -10],
+            [-10, 0, 10, 10, 10, 10, 0, -10],
+            [-10, 5, 5, 10, 10, 5, 5, -10],
+            [-10, 0, 5, 10, 10, 5, 0, -10],
+            [-10, 0, 0, 0, 0, 0, 0, -10],
+            [-20, -10, -10, -10, -10, -10, -10, -20]
+        ]
+
+        rook_positional_values = [
+            [0, 0, 0, 5, 5, 0, 0, 0],
+            [-5, 0, 0, 0, 0, 0, 0, -5],
+            [-5, 0, 0, 0, 0, 0, 0, -5],
+            [-5, 0, 0, 0, 0, 0, 0, -5],
+            [-5, 0, 0, 0, 0, 0, 0, -5],
+            [-5, 0, 0, 0, 0, 0, 0, -5],
+            [5, 10, 10, 10, 10, 10, 10, 5],
+            [0, 0, 0, 0, 0, 0, 0, 0]
+        ]
+
+        queen_positional_values = [
+            [-20, -10, -10, -5, -5, -10, -10, -20],
+            [-10, 0, 0, 0, 0, 5, 0, -10],
+            [-10, 0, 5, 5, 5, 5, 0, -10],
+            [-5, 0, 5, 5, 5, 5, 0, -5],
+            [0, 0, 5, 5, 5, 5, 0, -5],
+            [-10, 5, 5, 5, 5, 5, 0, -10],
+            [-10, 0, 5, 0, 0, 0, 0, -10],
+            [-20, -10, -10, -5, -5, -10, -10, -20]
+        ]
+
+        king_positional_values_early = [
+            [20, 30, 10, 0, 0, 10, 30, 20],
+            [20, 20, 0, 0, 0, 0, 20, 20],
+            [-10, -20, -20, -20, -20, -20, -20, -10],
+            [-20, -30, -30, -40, -40, -30, -30, -20],
+            [-30, -40, -40, -50, -50, -40, -40, -30],
+            [-30, -40, -40, -50, -50, -40, -40, -30],
+            [-30, -40, -40, -50, -50, -40, -40, -30],
+            [-30, -40, -40, -50, -50, -40, -40, -30]
+        ]
+
+        king_positional_values_endgame = [
+            [-50, -40, -30, -20, -20, -30, -40, -50],
+            [-30, -20, -10, 0, 0, -10, -20, -30],
+            [-30, -10, 20, 30, 30, 20, -10, -30],
+            [-30, -10, 30, 40, 40, 30, -10, -30],
+            [-30, -10, 30, 40, 40, 30, -10, -30],
+            [-30, -10, 20, 30, 30, 20, -10, -30],
+            [-30, -30, 0, 0, 0, 0, -30, -30],
+            [-50, -30, -30, -30, -30, -30, -30, -50]
+        ]
+
         for x in range(8):
-            piece_str = gametiles[y][x].pieceonTile.tostring()
-            piece_value = piece_values.get(piece_str, 0)
-            value += piece_value
-            if piece_str in ['K', 'k']:
-                if x in [0, 1, 6, 7] or y in [0, 1, 6, 7]:
-                    value -= 100 if piece_str == 'K' else 100
-                else:
-                    value += 50 if piece_str == 'K' else -50
-            if piece_str in ['Q', 'q', 'R', 'r', 'B', 'b', 'N', 'n']:
-                value += len(gametiles[y][x].pieceonTile.legalMoves()) * (10 if piece_str.islower() else -10)
-            if piece_str in ['P', 'p']:
-                if x in [2, 3, 4, 5]:
-                    value += 10 if piece_str == 'p' else -10
-    return value
+            for y in range(8):
+                piece = gametiles[y][x].pieceonTile
+                piece_type = piece.tostring().lower()
+                is_white = piece.tostring().islower()
+                modifier = 1 if is_white else -1  # Positive for white, negative for black
+
+                # Pawn positional value
+                if piece_type == 'p':
+                    value += 100 * modifier + pawn_positional_values[y][x] * modifier
+
+                # Knight positional value
+                elif piece_type == 'n':
+                    value += 320 * modifier + knight_positional_values[y][x] * modifier
+
+                elif piece_type == 'b':
+                    value += 330 * modifier + bishop_positional_values[y][x] * modifier
+
+                elif piece_type == 'r':
+                    value += 500 * modifier + rook_positional_values[y][x] * modifier
+
+                elif piece_type == 'q':
+                    value += 900 * modifier + queen_positional_values[y][x] * modifier
+
+                elif piece_type == 'k':
+                    value += 20000 * modifier + king_positional_values_early[y][x] * modifier
+
+                elif piece_type == 'k':
+                    value += 20000 * modifier + king_positional_values_endgame[y][x] * modifier
+                # For bishops, rooks, queens, and kings, add the base value plus the positional value
+                # For example:
+                # elif piece_type == 'b':
+                #     value += 330 * modifier + bishop_positional_values[y][x] * modifier
+                # ...
+
+                # Adjust the base values as needed based on your game experience and testing
+                # ...
+
+        # You can add further heuristics like doubled pawns, isolated pawns, backward pawns,
+        # control of the center (d4, d5, e4, e5 squares), king safety, etc.
+
+        return value
 
     def move(self,gametiles,y,x,n,m):
         promotion=False
